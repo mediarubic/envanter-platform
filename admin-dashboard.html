@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Süper Admin - Envanter Platform</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar */
+        /* Sidebar animations */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 280px;
+            height: 100vh;
+            background: linear-gradient(180deg, #7c3aed 0%, #5b21b6 100%);
+            transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            z-index: 1000;
+            overflow-y: auto;
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar.closed {
+            transform: translateX(-100%);
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 300px;
+                transform: translateX(-100%);
+                box-shadow: 4px 0 20px rgba(0, 0, 0, 0.2);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+        }
+
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            color: white;
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .logo i {
+            margin-right: 10px;
+            color: #fbbf24;
+        }
+
+        .admin-badge {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .sidebar-nav {
+            padding: 1rem 0;
+        }
+
+        .nav-section {
+            padding: 0 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .nav-section-title {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 0.625rem 1.5rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 0.125rem;
+            font-size: 14px;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-left-color: #fbbf24;
+        }
+
+        .nav-item.active {
+            background: rgba(251, 191, 36, 0.2);
+            color: white;
+            border-left-color: #fbbf24;
+        }
+
+        .nav-item i {
+            width: 20px;
+            margin-right: 12px;
+            text-align: center;
+        }
+
+        .nav-badge {
+            background: #ef4444;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 50px;
+            margin-left: auto;
+        }
+
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 280px;
+            right: 0;
+            height: 80px;
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            z-index: 999;
+            transition: left 0.3s ease;
+        }
+
+        .header.sidebar-closed {
+            left: 0;
+        }
+
+        .hamburger {
+            display: block;
+            background: none;
+            border: none;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .hamburger:hover {
+            background: #f1f5f9;
+        }
+
+        .hamburger-icon {
+            width: 20px;
+            height: 20px;
+            position: relative;
+            margin: auto;
+        }
+
+        .hamburger-line {
+            display: block;
+            width: 100%;
+            height: 2px;
+            background: #64748b;
+            border-radius: 1px;
+            transition: all 0.3s ease;
+            position: absolute;
+        }
+
+        .hamburger-line:nth-child(1) {
+            top: 4px;
+        }
+
+        .hamburger-line:nth-child(2) {
+            top: 9px;
+        }
+
+        .hamburger-line:nth-child(3) {
+            top: 14px;
+        }
+
+        /* Animated hamburger - always stays as hamburger */
+        .hamburger.active .hamburger-line:nth-child(1) {
+            transform: translateY(0px);
+            opacity: 0.7;
+        }
+
+        .hamburger.active .hamburger-line:nth-child(2) {
+            opacity: 0.7;
+        }
+
+        .hamburger.active .hamburger-line:nth-child(3) {
+            transform: translateY(0px);
+            opacity: 0.7;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            width: 350px;
+        }
+
+        .search-box input {
+            border: none;
+            background: none;
+            outline: none;
+            margin-left: 0.5rem;
+            width: 100%;
+            font-size: 14px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .notification-btn {
+            position: relative;
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #64748b;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .notification-btn:hover {
+            background: #f1f5f9;
+            color: #7c3aed;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #ef4444;
+            color: white;
+            font-size: 10px;
+            padding: 2px 5px;
+            border-radius: 50px;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 1rem;
+            background: #f8fafc;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .user-menu:hover {
+            background: #e2e8f0;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #7c3aed, #5b21b6);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 280px;
+            margin-top: 80px;
+            padding: 2rem;
+            transition: margin-left 0.3s ease;
+            min-height: calc(100vh - 80px);
+        }
+
+        .main-content.sidebar-closed {
+            margin-left: 0;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--accent-color);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-card.revenue { --accent-color: linear-gradient(90deg, #10b981, #047857); }
+        .stat-card.customers { --accent-color: linear-gradient(90deg, #3b82f6, #1d4ed8); }
+        .stat-card.assessments { --accent-color: linear-gradient(90deg, #f59e0b, #d97706); }
+        .stat-card.api-calls { --accent-color: linear-gradient(90deg, #8b5cf6, #7c3aed); }
+
+        .stat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+            background: var(--accent-color);
+        }
+
+        .stat-change {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .stat-change.positive {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .stat-change.negative {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            color: #64748b;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            padding: 1.5rem 1.5rem 0.75rem;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-title i {
+            color: #7c3aed;
+        }
+
+        .view-all {
+            color: #7c3aed;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .view-all:hover {
+            background: #f3e8ff;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        /* Company List */
+        .company-item {
+            padding: 1.25rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            margin-bottom: 0.75rem;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+
+        .company-item:hover {
+            border-color: #7c3aed;
+            background: white;
+            transform: translateY(-2px);
+        }
+
+        .company-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+
+        .company-info h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 0.25rem;
+        }
+
+        .company-plan {
+            background: #e0e7ff;
+            color: #3730a3;
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .company-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .company-stat {
+            text-align: center;
+        }
+
+        .company-stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .company-stat-label {
+            font-size: 11px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #7c3aed, #5b21b6);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 12px;
+            color: #64748b;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* API Management */
+        .api-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            background: #fafafa;
+        }
+
+        .api-status {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 1rem;
+        }
+
+        .api-status.online {
+            background: #10b981;
+        }
+
+        .api-status.offline {
+            background: #ef4444;
+        }
+
+        .api-info h4 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .api-info p {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .api-metrics {
+            text-align: right;
+        }
+
+        .api-calls {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .api-limit {
+            font-size: 11px;
+            color: #64748b;
+        }
+
+        /* Email Campaign Stats */
+        .email-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .email-stat {
+            text-align: center;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+
+        .email-stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.25rem;
+        }
+
+        .email-stat-label {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        /* Chart Placeholder */
+        .chart-placeholder {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+            font-size: 14px;
+            border: 2px dashed #cbd5e1;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #7c3aed, #5b21b6);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(124, 58, 237, 0.3);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #64748b;
+            border: 1px solid #e2e8f0;
+        }
+
+        .btn-secondary:hover {
+            background: #f8fafc;
+            color: #7c3aed;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hamburger {
+                display: block;
+            }
+
+            .sidebar {
+                transform: translateX(-100%);
+                width: 300px;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .header {
+                left: 0;
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .search-box {
+                display: none;
+            }
+
+            .company-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Overlay */
+        /* Overlay */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="fas fa-crown"></i>
+                Envanter Platform
+            </div>
+            <div class="admin-badge">Süper Admin</div>
+        </div>
+        <div class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Ana Panel</div>
+                <a href="#" class="nav-item active" onclick="showSection('dashboard')">
+                    <i class="fas fa-tachometer-alt"></i>
+                    Dashboard
+                </a>
+                <a href="#" class="nav-item" onclick="showSection('analytics')">
+                    <i class="fas fa-chart-line"></i>
+                    Analitik & Raporlar
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Müşteri Yönetimi</div>
+                <a href="#" class="nav-item" onclick="showSection('customers')">
+                    <i class="fas fa-building"></i>
+                    Müşteriler
+                </a>
+                <a href="#" class="nav-item" onclick="showSection('subscriptions')">
+                    <i class="fas fa-credit-card"></i>
+                    Abonelikler
+                </a>
+                <a href="#" class="nav-item" onclick="showSection('billing')">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                    Faturalandırma
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Envanter Yönetimi</div>
+                <a href="#" class="nav-item" onclick="showSection('assessments')">
+                    <i class="fas fa-clipboard-list"></i>
+                    Envanter Kataloğu
+                </a>
+                <a href="#" class="nav-item" onclick="showSection('assignments')">
+                    <i class="fas fa-tasks"></i>
+                    Atamalar
+                </a>
+                <a href="#" class="nav-item" onclick="showSection('results')">
+                    <i class="fas fa-chart-bar"></i>
+                    Sonuçlar
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Teknik Entegrasyonlar</div>
+                <a href="#" class="nav-item" onclick="showSection('api')">
+                    <i class="fas fa-plug"></i>
+                    API Yönetimi
+                    <span class="nav-badge">3</span>
+                </a>
+                <a href="#" class="nav-item" onclick="showSection('webhooks')">
+                    <i class="fas fa-satellite-dish"></i>
+                    Webhook'lar
+                </a>
+                <a href="#" class="nav-item" onclick="showSection('integrations')">
+                    <i class="fas fa-puzzle-piece"></i>
+                    Make.com & Sheets
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">E-posta & İletişim</div>
+                <a href="#" class="nav-item" onclick="showSection('email-campaigns')">
+                    <i class="fas fa-envelope"></i>
+                    E-posta Kampanyaları
+                </a>
+                <a href="#" class="nav-item" onclick="showSection('templates')">
+                    <i class="fas fa-file-alt"></i>
+                    Mail Template'leri
+                </a>
+                <a href="#" class="nav-item" onclick="showSection('notifications')">
+                    <i class="fas fa-bell"></i>
+                    Bildirimler
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Sistem</div>
+                <a href="#" class="nav-item" onclick="showSection('settings')">
+                    <i class="fas fa-cog"></i>
+                    Sistem Ayarları
+                </a>
+                <a href="#" class="nav-item" onclick="showSection('logs')">
+                    <i class="fas fa-file-alt"></i>
+                    Sistem Logları
+                </a>
+                <a href="#" class="nav-item" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Çıkış Yap
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <header class="header" id="header">
+        <div class="header-left">
+            <button class="hamburger" id="hamburger">
+                <div class="hamburger-icon">
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                </div>
+            </button>
+            <h1 class="page-title">Dashboard</h1>
+        </div>
+        
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Müşteri, envanter veya rapor ara...">
+        </div>
+        
+        <div class="header-actions">
+            <button class="notification-btn">
+                <i class="fas fa-bell"></i>
+                <span class="notification-badge">5</span>
+            </button>
+            
+            <div class="user-menu" onclick="showUserMenu()">
+                <div class="user-avatar">BY</div>
+                <div>
+                    <div style="font-weight: 600; font-size: 14px;">Berkay Dell</div>
+                    <div style="font-size: 12px; color: #64748b;">Süper Admin</div>
+                </div>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+        </div>
+    </header>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main-content">
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn btn-primary" onclick="addCustomer()">
+                <i class="fas fa-plus"></i>
+                Yeni Müşteri Ekle
+            </button>
+            <button class="btn btn-secondary" onclick="exportData()">
+                <i class="fas fa-download"></i>
+                Veri Dışa Aktar
+            </button>
+            <button class="btn btn-secondary" onclick="generateReport()">
+                <i class="fas fa-chart-pie"></i>
+                Genel Rapor Oluştur
+            </button>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card revenue">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i>
+                        +24%
+                    </div>
+                </div>
+                <div class="stat-value">₺127,450</div>
+                <div class="stat-label">Bu Ay Gelir</div>
+            </div>
+
+            <div class="stat-card customers">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i>
+                        +8%
+                    </div>
+                </div>
+                <div class="stat-value">47</div>
+                <div class="stat-label">Aktif Müşteri</div>
+            </div>
+
+            <div class="stat-card assessments">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="fas fa-clipboard-check"></i>
+                    </div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i>
+                        +15%
+                    </div>
+                </div>
+                <div class="stat-value">2,847</div>
+                <div class="stat-label">Bu Ay Tamamlanan</div>
+            </div>
+
+            <div class="stat-card api-calls">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="fas fa-plug"></i>
+                    </div>
+                    <div class="stat-change negative">
+                        <i class="fas fa-arrow-down"></i>
+                        -3%
+                    </div>
+                </div>
+                <div class="stat-value">15,234</div>
+                <div class="stat-label">API Çağrıları</div>
+            </div>
+        </div>
+
+        <!-- Dashboard Grid -->
+        <div class="dashboard-grid">
+            <!-- Left Column -->
+            <div>
+                <!-- Customer Overview -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-building"></i>
+                            Müşteri Durumu
+                        </h2>
+                        <a href="#" class="view-all">Tümünü Gör</a>
+                    </div>
+                    <div class="card-body">
+                        <div class="company-item">
+                            <div class="company-header">
+                                <div class="company-info">
+                                    <h3>Koç Holding</h3>
+                                    <p style="color: #64748b; font-size: 14px;">hr@kocholding.com</p>
+                                </div>
+                                <div class="company-plan">Professional</div>
+                            </div>
+                            <div class="company-stats">
+                                <div class="company-stat">
+                                    <div class="company-stat-value">147</div>
+                                    <div class="company-stat-label">Kullanıcı</div>
+                                </div>
+                                <div class="company-stat">
+                                    <div class="company-stat-value">234</div>
+                                    <div class="company-stat-label">Rapor</div>
+                                </div>
+                                <div class="company-stat">
+                                    <div class="company-stat-value">89%</div>
+                                    <div class="company-stat-label">Açılma</div>
+                                </div>
+                                <div class="company-stat">
+                                    <div class="company-stat-value">45</div>
+                                    <div class="company-stat-label">Gün</div>
+                                </div>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 76%"></div>
+                            </div>
+                            <div class="progress-text">
+                                <span>Kullanım: 766/1000 rapor kaldı</span>
+                                <span>%76 kullanım</span>
+                            </div>
+                        </div>
+
+                        <div class="company-item">
+                            <div class="company-header">
+                                <div class="company-info">
+                                    <h3>Arçelik</h3>
+                                    <p style="color: #64748b; font-size: 14px;">ik@arcelik.com</p>
+                                </div>
+                                <div class="company-plan">Basic</div>
+                            </div>
+                            <div class="company-stats">
+                                <div class="company-stat">
+                                    <div class="company-stat-value">23</div>
+                                    <div class="company-stat-label">Kullanıcı</div>
+                                </div>
+                                <div class="company-stat">
+                                    <div class="company-stat-value">89</div>
+                                    <div class="company-stat-label">Rapor</div>
+                                </div>
+                                <div class="company-stat">
+                                    <div class="company-stat-value">67%</div>
+                                    <div class="company-stat-label">Açılma</div>
+                                </div>
+                                <div class="company-stat">
+                                    <div class="company-stat-value" style="color: #ef4444;">12</div>
+                                    <div class="company-stat-label">Gün</div>
+                                </div>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 32%; background: #ef4444;"></div>
+                            </div>
+                            <div class="progress-text">
+                                <span style="color: #ef4444;">Kullanım: 161/250 rapor kaldı</span>
+                                <span>%32 kullanım</span>
+                            </div>
+                        </div>
+
+                        <div class="company-item">
+                            <div class="company-header">
+                                <div class="company-info">
+                                    <h3>Turkcell</h3>
+                                    <p style="color: #64748b; font-size: 14px;">hr@turkcell.com.tr</p>
+                                </div>
+                                <div class="company-plan">Enterprise</div>
+                            </div>
+                            <div class="company-stats">
+                                <div class="company-stat">
+                                    <div class="company-stat-value">890</div>
+                                    <div class="company-stat-label">Kullanıcı</div>
+                                </div>
+                                <div class="company-stat">
+                                    <div class="company-stat-value">456</div>
+                                    <div class="company-stat-label">Rapor</div>
+                                </div>
+                                <div class="company-stat">
+                                    <div class="company-stat-value">94%</div>
+                                    <div class="company-stat-label">Açılma</div>
+                                </div>
+                                <div class="company-stat">
+                                    <div class="company-stat-value">287</div>
+                                    <div class="company-stat-label">Gün</div>
+                                </div>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 45%"></div>
+                            </div>
+                            <div class="progress-text">
+                                <span>Kullanım: Sınırsız - 456 rapor bu ay</span>
+                                <span>Yıllık abonelik</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Email Campaign Performance -->
+                <div class="card" style="margin-top: 2rem;">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-envelope"></i>
+                            E-posta Kampanya Performansı
+                        </h2>
+                        <a href="#" class="view-all">Detay</a>
+                    </div>
+                    <div class="card-body">
+                        <div class="email-stats">
+                            <div class="email-stat">
+                                <div class="email-stat-value">1,247</div>
+                                <div class="email-stat-label">Gönderilen</div>
+                            </div>
+                            <div class="email-stat">
+                                <div class="email-stat-value">89%</div>
+                                <div class="email-stat-label">Açılma</div>
+                            </div>
+                            <div class="email-stat">
+                                <div class="email-stat-value">67%</div>
+                                <div class="email-stat-label">Tıklama</div>
+                            </div>
+                            <div class="email-stat">
+                                <div class="email-stat-value">78%</div>
+                                <div class="email-stat-label">Tamamlama</div>
+                            </div>
+                        </div>
+                        <div class="chart-placeholder">
+                            📊 E-posta Performans Grafiği (Chart.js ile entegre edilecek)
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div>
+                <!-- API Management -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-plug"></i>
+                            API Durumu
+                        </h2>
+                        <a href="#" class="view-all">Yönet</a>
+                    </div>
+                    <div class="card-body">
+                        <div class="api-item">
+                            <div style="display: flex; align-items: center;">
+                                <div class="api-status online"></div>
+                                <div class="api-info">
+                                    <h4>Koç Holding API</h4>
+                                    <p>Son senkronizasyon: 2 saat önce</p>
+                                </div>
+                            </div>
+                            <div class="api-metrics">
+                                <div class="api-calls">1,247</div>
+                                <div class="api-limit">/ 5,000</div>
+                            </div>
+                        </div>
+
+                        <div class="api-item">
+                            <div style="display: flex; align-items: center;">
+                                <div class="api-status offline"></div>
+                                <div class="api-info">
+                                    <h4>Arçelik API</h4>
+                                    <p style="color: #ef4444;">Hata: 401 Unauthorized</p>
+                                </div>
+                            </div>
+                            <div class="api-metrics">
+                                <div class="api-calls" style="color: #ef4444;">0</div>
+                                <div class="api-limit">/ 1,000</div>
+                            </div>
+                        </div>
+
+                        <div class="api-item">
+                            <div style="display: flex; align-items: center;">
+                                <div class="api-status online"></div>
+                                <div class="api-info">
+                                    <h4>Turkcell API</h4>
+                                    <p>Son senkronizasyon: 1 saat önce</p>
+                                </div>
+                            </div>
+                            <div class="api-metrics">
+                                <div class="api-calls">3,456</div>
+                                <div class="api-limit">/ 10,000</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="card" style="margin-top: 2rem;">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-bolt"></i>
+                            Hızlı İşlemler
+                        </h2>
+                    </div>
+                    <div class="card-body">
+                        <div style="display: flex; flex-direction: column; gap: 1rem;">
+                            <button class="btn btn-primary" onclick="createAssessment()">
+                                <i class="fas fa-plus"></i>
+                                Yeni Envanter Oluştur
+                            </button>
+                            <button class="btn btn-secondary" onclick="sendBulkEmail()">
+                                <i class="fas fa-envelope-open"></i>
+                                Toplu E-posta Gönder
+                            </button>
+                            <button class="btn btn-secondary" onclick="generateApiKey()">
+                                <i class="fas fa-key"></i>
+                                API Key Oluştur
+                            </button>
+                            <button class="btn btn-secondary" onclick="systemMaintenance()">
+                                <i class="fas fa-tools"></i>
+                                Sistem Bakımı
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Health -->
+                <div class="card" style="margin-top: 2rem;">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-heartbeat"></i>
+                            Sistem Sağlığı
+                        </h2>
+                    </div>
+                    <div class="card-body">
+                        <div style="display: flex; flex-direction: column; gap: 1rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span>CPU Kullanımı</span>
+                                <span style="color: #10b981; font-weight: 600;">23%</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span>RAM Kullanımı</span>
+                                <span style="color: #f59e0b; font-weight: 600;">67%</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span>Disk Kullanımı</span>
+                                <span style="color: #10b981; font-weight: 600;">45%</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span>Database</span>
+                                <span style="color: #10b981; font-weight: 600;">Online</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Sidebar Toggle
+        const hamburger = document.getElementById('hamburger');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        const header = document.getElementById('header');
+        const mainContent = document.getElementById('main-content');
+
+        hamburger.addEventListener('click', () => {
+            if (window.innerWidth <= 768) {
+                // Mobile: Toggle sidebar and overlay
+                sidebar.classList.toggle('open');
+                overlay.classList.toggle('show');
+                hamburger.classList.toggle('active');
+            } else {
+                // Desktop: Toggle sidebar collapse
+                sidebar.classList.toggle('closed');
+                header.classList.toggle('sidebar-closed');
+                mainContent.classList.toggle('sidebar-closed');
+                hamburger.classList.toggle('active');
+            }
+        });
+
+        overlay.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('show');
+            hamburger.classList.remove('active');
+        });
+
+        // Navigation
+        function showSection(section) {
+            // Update active nav item
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            const sections = {
+                dashboard: 'Ana Dashboard',
+                analytics: 'Analitik & Raporlar Sayfası',
+                customers: 'Müşteri Yönetimi Sayfası',
+                subscriptions: 'Abonelik Yönetimi Sayfası',
+                billing: 'Faturalandırma Sayfası',
+                assessments: 'Envanter Kataloğu Sayfası',
+                assignments: 'Envanter Atamalar Sayfası',
+                results: 'Sonuçlar Sayfası',
+                api: 'API Yönetimi Sayfası',
+                webhooks: 'Webhook Yönetimi Sayfası',
+                integrations: 'Entegrasyon Sayfası',
+                'email-campaigns': 'E-posta Kampanyaları Sayfası',
+                templates: 'Mail Template Sayfası',
+                notifications: 'Bildirim Yönetimi Sayfası',
+                settings: 'Sistem Ayarları Sayfası',
+                logs: 'Sistem Logları Sayfası'
+            };
+
+            if (section !== 'dashboard') {
+                alert(`🚧 ${sections[section]} yakında hazır olacak!\n\nÖzellikler:\n• Detaylı analitik\n• Gelişmiş filtreleme\n• Export işlemleri\n• Toplu işlemler`);
+            }
+
+            // Update page title
+            document.querySelector('.page-title').textContent = sections[section] || 'Dashboard';
+
+            // Close mobile menu
+            if (window.innerWidth <= 768) {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('show');
+            }
+        }
+
+        // Action Functions
+        function addCustomer() {
+            alert('🏢 Yeni Müşteri Ekleme Formu\n\n📝 Gerekli Bilgiler:\n• Şirket adı\n• İletişim bilgileri\n• Abonelik paketi\n• Kullanıcı limiti\n• API entegrasyon tercihi');
+        }
+
+        function exportData() {
+            alert('📊 Veri Dışa Aktarma\n\n📋 Mevcut Formatlar:\n• Excel (.xlsx)\n• CSV (.csv)\n• JSON (.json)\n• PDF Raporu\n\n🔄 İşlem başlatılıyor...');
+        }
+
+        function generateReport() {
+            alert('📈 Genel Rapor Oluşturuluyor\n\n📊 İçerik:\n• Müşteri analizi\n• Gelir trendleri\n• Kullanım istatistikleri\n• API performansı\n• E-posta kampanya sonuçları');
+        }
+
+        function createAssessment() {
+            alert('📋 Yeni Envanter Oluşturma\n\n🎯 Adımlar:\n1. Envanter başlığı ve açıklaması\n2. Articulate Storyline dosyası yükleme\n3. Kategorilendirme ve etiketleme\n4. Fiyatlandırma ayarları\n5. Test ve yayınlama');
+        }
+
+        function sendBulkEmail() {
+            alert('📧 Toplu E-posta Sistemi\n\n🎯 Özellikler:\n• Template seçimi\n• Hedef grup filtreleme\n• Zamanlanmış gönderim\n• Performans takibi\n• A/B test desteği');
+        }
+
+        function generateApiKey() {
+            alert('🔑 API Key Oluşturma\n\n⚙️ Ayarlar:\n• İzin seviyesi seçimi\n• Rate limit belirleme\n• IP kısıtlaması\n• Webhook URL tanımlama\n• Test environment');
+        }
+
+        function systemMaintenance() {
+            alert('🔧 Sistem Bakım Modu\n\n📋 Bakım İşlemleri:\n• Database optimizasyonu\n• Cache temizleme\n• Log rotation\n• Security update\n• Performance monitoring');
+        }
+
+        function showUserMenu() {
+            alert('👑 Süper Admin Menüsü\n\n⚙️ Seçenekler:\n• Profil Ayarları\n• Şifre Değiştir\n• 2FA Ayarları\n• Sistem Logları\n• Çıkış Yap');
+        }
+
+        function logout() {
+            if(confirm('Çıkış yapmak istediğinizden emin misiniz?')) {
+                alert('👋 Güle güle! Ana sayfaya yönlendiriliyorsunuz...');
+                window.location.href = 'index.html';
+            }
+        }
+
+        // Welcome message
+        setTimeout(() => {
+            alert('👑 Hoşgeldin Berkay!\n\n📊 Sistem Durumu:\n• 47 aktif müşteri\n• ₺127,450 bu ay gelir\n• 2,847 tamamlanan envanter\n• 3 API entegrasyonu aktif\n\n💡 Sol menüden tüm yönetim bölümlerine erişebilirsin!');
+        }, 2000);
+
+        // Responsive handling
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('show');
+                hamburger.classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>

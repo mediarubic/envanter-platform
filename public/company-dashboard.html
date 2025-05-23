@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Şirket Paneli - Envanter Platform</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar animations */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            background: linear-gradient(180deg, #1e293b 0%, #334155 100%);
+            transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            z-index: 1000;
+            overflow-y: auto;
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar.closed {
+            transform: translateX(-100%);
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 280px;
+                transform: translateX(-100%);
+                box-shadow: 4px 0 20px rgba(0, 0, 0, 0.2);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            color: white;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .logo i {
+            margin-right: 10px;
+            color: #3b82f6;
+        }
+
+        .company-badge {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .sidebar-nav {
+            padding: 1rem 0;
+        }
+
+        .nav-section {
+            padding: 0 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .nav-section-title {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 0.625rem 1.5rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 0.125rem;
+            font-size: 14px;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-left-color: #3b82f6;
+        }
+
+        .nav-item.active {
+            background: rgba(59, 130, 246, 0.2);
+            color: white;
+            border-left-color: #3b82f6;
+        }
+
+        .nav-item i {
+            width: 20px;
+            margin-right: 12px;
+            text-align: center;
+        }
+
+        .nav-badge {
+            background: #ef4444;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 50px;
+            margin-left: auto;
+        }
+
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 260px;
+            right: 0;
+            height: 70px;
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            z-index: 999;
+            transition: left 0.3s ease;
+        }
+
+        .header.sidebar-closed {
+            left: 0;
+        }
+
+        .hamburger {
+            display: block;
+            background: none;
+            border: none;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .hamburger:hover {
+            background: #f1f5f9;
+        }
+
+        .hamburger-icon {
+            width: 20px;
+            height: 20px;
+            position: relative;
+            margin: auto;
+        }
+
+        .hamburger-line {
+            display: block;
+            width: 100%;
+            height: 2px;
+            background: #64748b;
+            border-radius: 1px;
+            transition: all 0.3s ease;
+            position: absolute;
+        }
+
+        .hamburger-line:nth-child(1) {
+            top: 4px;
+        }
+
+        .hamburger-line:nth-child(2) {
+            top: 9px;
+        }
+
+        .hamburger-line:nth-child(3) {
+            top: 14px;
+        }
+
+        /* Animated hamburger - always stays as hamburger */
+        .hamburger.active .hamburger-line:nth-child(1) {
+            transform: translateY(0px);
+            opacity: 0.7;
+        }
+
+        .hamburger.active .hamburger-line:nth-child(2) {
+            opacity: 0.7;
+        }
+
+        .hamburger.active .hamburger-line:nth-child(3) {
+            transform: translateY(0px);
+            opacity: 0.7;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .page-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            width: 300px;
+        }
+
+        .search-box input {
+            border: none;
+            background: none;
+            outline: none;
+            margin-left: 0.5rem;
+            width: 100%;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .notification-btn {
+            position: relative;
+            background: none;
+            border: none;
+            font-size: 18px;
+            color: #64748b;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .notification-btn:hover {
+            background: #f1f5f9;
+            color: #3b82f6;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #ef4444;
+            color: white;
+            font-size: 10px;
+            padding: 2px 5px;
+            border-radius: 50px;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 1rem;
+            background: #f8fafc;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .user-menu:hover {
+            background: #e2e8f0;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 260px;
+            margin-top: 70px;
+            padding: 1.5rem;
+            transition: margin-left 0.3s ease;
+            min-height: calc(100vh - 70px);
+        }
+
+        .main-content.sidebar-closed {
+            margin-left: 0;
+        }
+
+        /* Subscription Status */
+        .subscription-banner {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            border-radius: 12px;
+            padding: 1.5rem;
+            color: white;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .subscription-banner::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        .banner-content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .banner-info h2 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .banner-info p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+
+        .banner-stats {
+            display: flex;
+            gap: 2rem;
+            text-align: center;
+        }
+
+        .banner-stat {
+            min-width: 80px;
+        }
+
+        .banner-stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .banner-stat-label {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #64748b;
+            border: 1px solid #e2e8f0;
+        }
+
+        .btn-secondary:hover {
+            background: #f8fafc;
+            color: #3b82f6;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #047857);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            padding: 1.5rem 1.5rem 0.75rem;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-title i {
+            color: #3b82f6;
+        }
+
+        .view-all {
+            color: #3b82f6;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        /* Department Stats */
+        .department-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .department-item {
+            padding: 1.25rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+
+        .department-item:hover {
+            border-color: #3b82f6;
+            background: white;
+        }
+
+        .department-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .department-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .department-count {
+            background: #e0e7ff;
+            color: #3730a3;
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .department-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        .dept-stat {
+            text-align: center;
+        }
+
+        .dept-stat-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.25rem;
+        }
+
+        .dept-stat-label {
+            font-size: 11px;
+            color: #64748b;
+            text-transform: uppercase;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 0.75rem 0 0.5rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 12px;
+            color: #64748b;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Email Campaign Stats */
+        .email-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .email-stat {
+            text-align: center;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+
+        .email-stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.25rem;
+        }
+
+        .email-stat-label {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        /* Recent Activities */
+        .activity-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .activity-item {
+            padding: 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: #fafafa;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .activity-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: white;
+        }
+
+        .activity-icon.sent { background: #10b981; }
+        .activity-icon.opened { background: #3b82f6; }
+        .activity-icon.completed { background: #8b5cf6; }
+
+        .activity-info {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 0.25rem;
+        }
+
+        .activity-description {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .activity-time {
+            font-size: 11px;
+            color: #94a3b8;
+        }
+
+        /* Package Usage Widget */
+        .usage-widget {
+            text-align: center;
+            padding: 1.5rem;
+        }
+
+        .usage-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: conic-gradient(#3b82f6 0deg 234deg, #e2e8f0 234deg 360deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            position: relative;
+        }
+
+        .usage-circle::before {
+            content: '';
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+        }
+
+        .usage-percentage {
+            position: relative;
+            z-index: 2;
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .usage-details {
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hamburger {
+                display: block;
+            }
+
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .header {
+                left: 0;
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .search-box {
+                display: none;
+            }
+
+            .banner-stats {
+                gap: 1rem;
+            }
+
+            .banner-content {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .department-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .email-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Overlay */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="fas fa-chart-line"></i>
+                Envanter Platform
+            </div>
+            <div class="company-badge">Koç Holding</div>
+        </div>
+        <div class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Ana Panel</div>
+                <a href="#" class="nav-item active">
+                    <i class="fas fa-home"></i>
+                    Dashboard
+                </a>
+                <a href="#" class="nav-item" onclick="showSection('reports')">
+                    <i class="fas fa-chart-bar"></i>
+                    Raporlar & Analiz
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Çalışan Yönetimi</div>
+                <a href="#" class="nav-item" onclick="showSection('employees')">
+                    <i class="fas fa-users"></i>
+                    Çalışanlar
+                </a>
+                <a href="#" class="nav-item" onclick="showSection('departments')">
+                    <i class="fas fa-building"></i>
+                    Departmanlar
+                </a>
+                <a href="#" class="nav-item" onclick="showSection('bulk-add')">
+                    <i class="fas fa-file-excel"></i>
+                    Toplu Ekleme
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Envanter İşlemleri</div>
+                <a href="#" class="nav-item" onclick="showSection('assignments')">
+                    <i class="fas fa-tasks"></i>
+                    Envanter Atama
+                    <span class="nav-badge">3</span>
+                </a>
+                <a href="#" class="nav-item" onclick="showSection('assessments')">
+                    <i class="fas fa-clipboard-list"></i>
+                    Mevcut Envanter
+                </a>
+                <a href="#" class="nav-item" onclick="showSection('results')">
+                    <i class="fas fa-poll"></i>
+                    Sonuçlar
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">E-posta & İletişim</div>
+                <a href="#" class="nav-item" onclick="showSection('email-campaigns')">
+                    <i class="fas fa-envelope"></i>
+                    E-posta Kampanyaları
+                </a>
+                <a href="#" class="nav-item" onclick="showSection('templates')">
+                    <i class="fas fa-file-alt"></i>
+                    Mail Template'leri
+                </a>
+                <a href="#" class="nav-item" onclick="showSection('tracking')">
+                    <i class="fas fa-link"></i>
+                    Link Takibi
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Hesap</div>
+                <a href="#" class="nav-item" onclick="showSection('subscription')">
+                    <i class="fas fa-credit-card"></i>
+                    Abonelik Durumu
+                </a>
+                <a href="#" class="nav-item" onclick="showSection('settings')">
+                    <i class="fas fa-cog"></i>
+                    Ayarlar
+                </a>
+                <a href="#" class="nav-item" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Çıkış Yap
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <header class="header" id="header">
+        <div class="header-left">
+            <button class="hamburger" id="hamburger">
+                <div class="hamburger-icon">
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                </div>
+            </button>
+            <h1 class="page-title">Dashboard</h1>
+        </div>
+        
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Çalışan veya envanter ara...">
+        </div>
+        
+        <div class="header-actions">
+            <button class="notification-btn">
+                <i class="fas fa-bell"></i>
+                <span class="notification-badge">4</span>
+            </button>
+            
+            <div class="user-menu" onclick="showUserMenu()">
+                <div class="user-avatar">AY</div>
+                <div>
+                    <div style="font-weight: 600; font-size: 14px;">Ayşe Yılmaz</div>
+                    <div style="font-size: 12px; color: #64748b;">İK Uzmanı</div>
+                </div>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+        </div>
+    </header>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main-content">
+        <!-- Subscription Banner -->
+        <section class="subscription-banner">
+            <div class="banner-content">
+                <div class="banner-info">
+                    <h2>Professional Paket</h2>
+                    <p>Kalan: 42 gün | 9 rapor • 147/250 çalışan aktif</p>
+                </div>
+                <div class="banner-stats">
+                    <div class="banner-stat">
+                        <div class="banner-stat-value">234</div>
+                        <div class="banner-stat-label">Bu Ay Rapor</div>
+                    </div>
+                    <div class="banner-stat">
+                        <div class="banner-stat-value">89%</div>
+                        <div class="banner-stat-label">Açılma Oranı</div>
+                    </div>
+                    <div class="banner-stat">
+                        <div class="banner-stat-value">67%</div>
+                        <div class="banner-stat-label">Tamamlama</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn btn-primary" onclick="sendEmailCampaign()">
+                <i class="fas fa-envelope"></i>
+                Çalışanlara Envanter Gönder
+            </button>
+            <button class="btn btn-success" onclick="addEmployee()">
+                <i class="fas fa-user-plus"></i>
+                Yeni Çalışan Ekle
+            </button>
+            <button class="btn btn-secondary" onclick="importExcel()">
+                <i class="fas fa-file-excel"></i>
+                Excel'den İçe Aktar
+            </button>
+            <button class="btn btn-secondary" onclick="downloadReport()">
+                <i class="fas fa-download"></i>
+                Genel Rapor İndir
+            </button>
+        </div>
+
+        <!-- Dashboard Grid -->
+        <div class="dashboard-grid">
+            <!-- Left Column -->
+            <div>
+                <!-- Department Overview -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-building"></i>
+                            Departman Durumu
+                        </h2>
+                        <a href="#" class="view-all">Tümünü Gör</a>
+                    </div>
+                    <div class="card-body">
+                        <div class="department-list">
+                            <div class="department-item">
+                                <div class="department-header">
+                                    <h3 class="department-name">Bilgi İşlem</h3>
+                                    <div class="department-count">45 kişi</div>
+                                </div>
+                                <div class="department-stats">
+                                    <div class="dept-stat">
+                                        <div class="dept-stat-value">38</div>
+                                        <div class="dept-stat-label">Gönderildi</div>
+                                    </div>
+                                    <div class="dept-stat">
+                                        <div class="dept-stat-value">31</div>
+                                        <div class="dept-stat-label">Açıldı</div>
+                                    </div>
+                                    <div class="dept-stat">
+                                        <div class="dept-stat-value">23</div>
+                                        <div class="dept-stat-label">Tamamladı</div>
+                                    </div>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 82%"></div>
+                                </div>
+                                <div class="progress-text">
+                                    <span>Açılma: %82 (31/38)</span>
+                                    <span>Tamamlama: %61 (23/38)</span>
+                                </div>
+                            </div>
+
+                            <div class="department-item">
+                                <div class="department-header">
+                                    <h3 class="department-name">İnsan Kaynakları</h3>
+                                    <div class="department-count">32 kişi</div>
+                                </div>
+                                <div class="department-stats">
+                                    <div class="dept-stat">
+                                        <div class="dept-stat-value">32</div>
+                                        <div class="dept-stat-label">Gönderildi</div>
+                                    </div>
+                                    <div class="dept-stat">
+                                        <div class="dept-stat-value">30</div>
+                                        <div class="dept-stat-label">Açıldı</div>
+                                    </div>
+                                    <div class="dept-stat">
+                                        <div class="dept-stat-value">28</div>
+                                        <div class="dept-stat-label">Tamamladı</div>
+                                    </div>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 94%"></div>
+                                </div>
+                                <div class="progress-text">
+                                    <span>Açılma: %94 (30/32)</span>
+                                    <span>Tamamlama: %88 (28/32)</span>
+                                </div>
+                            </div>
+
+                            <div class="department-item">
+                                <div class="department-header">
+                                    <h3 class="department-name">Pazarlama</h3>
+                                    <div class="department-count">28 kişi</div>
+                                </div>
+                                <div class="department-stats">
+                                    <div class="dept-stat">
+                                        <div class="dept-stat-value">28</div>
+                                        <div class="dept-stat-label">Gönderildi</div>
+                                    </div>
+                                    <div class="dept-stat">
+                                        <div class="dept-stat-value">19</div>
+                                        <div class="dept-stat-label">Açıldı</div>
+                                    </div>
+                                    <div class="dept-stat">
+                                        <div class="dept-stat-value">15</div>
+                                        <div class="dept-stat-label">Tamamladı</div>
+                                    </div>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 68%; background: #f59e0b;"></div>
+                                </div>
+                                <div class="progress-text">
+                                    <span>Açılma: %68 (19/28)</span>
+                                    <span style="color: #f59e0b;">Tamamlama: %54 (15/28)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Email Campaign Performance -->
+                <div class="card" style="margin-top: 1.5rem;">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-envelope-open"></i>
+                            E-posta Kampanya Performansı
+                        </h2>
+                        <a href="#" class="view-all">Detay</a>
+                    </div>
+                    <div class="card-body">
+                        <div class="email-stats">
+                            <div class="email-stat">
+                                <div class="email-stat-value">147</div>
+                                <div class="email-stat-label">Gönderildi</div>
+                            </div>
+                            <div class="email-stat">
+                                <div class="email-stat-value">89%</div>
+                                <div class="email-stat-label">Açılma</div>
+                            </div>
+                            <div class="email-stat">
+                                <div class="email-stat-value">76%</div>
+                                <div class="email-stat-label">Tıklama</div>
+                            </div>
+                            <div class="email-stat">
+                                <div class="email-stat-value">67%</div>
+                                <div class="email-stat-label">Tamamlama</div>
+                            </div>
+                        </div>
+                        
+                        <div style="background: #f8fafc; border-radius: 8px; padding: 1rem; margin-top: 1rem;">
+                            <h4 style="color: #1e293b; margin-bottom: 0.5rem;">Son Kampanya: Liderlik Becerileri</h4>
+                            <p style="color: #64748b; font-size: 14px; margin-bottom: 0.5rem;">Gönderim: 23 Mayıs 2025</p>
+                            <p style="color: #64748b; font-size: 14px;">Link: envanter.com/koc/leadership/2025</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div>
+                <!-- Package Usage -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-chart-pie"></i>
+                            Paket Kullanımı
+                        </h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="usage-widget">
+                            <div class="usage-circle">
+                                <div class="usage-percentage">65%</div>
+                            </div>
+                            <div class="usage-details">
+                                <strong>147/250</strong> çalışan aktif<br>
+                                <strong>234/1000</strong> rapor kullanıldı<br>
+                                <span style="color: #ef4444;">766 rapor kaldı</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activities -->
+                <div class="card" style="margin-top: 1.5rem;">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-clock"></i>
+                            Son Aktiviteler
+                        </h2>
+                        <a href="#" class="view-all">Tümü</a>
+                    </div>
+                    <div class="card-body">
+                        <div class="activity-list">
+                            <div class="activity-item">
+                                <div class="activity-icon sent">
+                                    <i class="fas fa-envelope"></i>
+                                </div>
+                                <div class="activity-info">
+                                    <div class="activity-title">Stres Yönetimi envanteri gönderildi</div>
+                                    <div class="activity-description">32 çalışana e-posta gönderildi</div>
+                                </div>
+                                <div class="activity-time">2 saat önce</div>
+                            </div>
+
+                            <div class="activity-item">
+                                <div class="activity-icon completed">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                                <div class="activity-info">
+                                    <div class="activity-title">Ahmet Yılmaz testi tamamladı</div>
+                                    <div class="activity-description">Liderlik Becerileri - Puan: 85/100</div>
+                                </div>
+                                <div class="activity-time">4 saat önce</div>
+                            </div>
+
+                            <div class="activity-item">
+                                <div class="activity-icon opened">
+                                    <i class="fas fa-eye"></i>
+                                </div>
+                                <div class="activity-info">
+                                    <div class="activity-title">Fatma Kaya linki açtı</div>
+                                    <div class="activity-description">Ekip Çalışması envanteri</div>
+                                </div>
+                                <div class="activity-time">6 saat önce</div>
+                            </div>
+
+                            <div class="activity-item">
+                                <div class="activity-icon sent">
+                                    <i class="fas fa-bell"></i>
+                                </div>
+                                <div class="activity-info">
+                                    <div class="activity-title">Hatırlatma gönderildi</div>
+                                    <div class="activity-description">15 kişiye test hatırlatması</div>
+                                </div>
+                                <div class="activity-time">1 gün önce</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="card" style="margin-top: 1.5rem;">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-bolt"></i>
+                            Hızlı İşlemler
+                        </h2>
+                    </div>
+                    <div class="card-body">
+                        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            <button class="btn btn-primary" onclick="sendReminder()">
+                                <i class="fas fa-paper-plane"></i>
+                                Hatırlatma Gönder
+                            </button>
+                            <button class="btn btn-secondary" onclick="viewCompletedReports()">
+                                <i class="fas fa-chart-bar"></i>
+                                Tamamlanan Raporlar
+                            </button>
+                            <button class="btn btn-secondary" onclick="exportDepartmentData()">
+                                <i class="fas fa-file-excel"></i>
+                                Departman Raporu
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Email Campaign Modal -->
+    <div id="email-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Çalışanlara Envanter Gönder</h3>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom: 1.5rem;">
+                    <h4 style="margin-bottom: 1rem;">📋 Mevcut Envanter Seçimi:</h4>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <label style="display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="radio" name="assessment" value="leadership" checked>
+                            <span>Liderlik Becerileri Değerlendirmesi</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="radio" name="assessment" value="stress">
+                            <span>Stres Yönetimi Envanteri</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="radio" name="assessment" value="teamwork">
+                            <span>Ekip Çalışması Değerlendirmesi</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <h4 style="margin-bottom: 1rem;">👥 Hedef Grup Seçimi:</h4>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <label style="display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="checkbox" checked>
+                            <span>Bilgi İşlem (45 kişi)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="checkbox">
+                            <span>İnsan Kaynakları (32 kişi)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="checkbox">
+                            <span>Pazarlama (28 kişi)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">📅 Son Tarih:</label>
+                    <input type="date" style="width: 100%; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 6px;">
+                </div>
+
+                <div style="background: #f0f9ff; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                    <h5 style="color: #0369a1; margin-bottom: 0.5rem;">📧 Otomatik E-posta:</h5>
+                    <p style="font-size: 14px; color: #0369a1;">Seçilen çalışanlara kişiselleştirilmiş envanter linkleri gönderilecek.</p>
+                </div>
+
+                <div style="display: flex; gap: 1rem;">
+                    <button class="btn btn-primary" onclick="confirmSendEmail()" style="flex: 1;">
+                        <i class="fas fa-paper-plane"></i>
+                        Gönder
+                    </button>
+                    <button class="btn btn-secondary" onclick="closeModal()">
+                        İptal
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sidebar Toggle
+        const hamburger = document.getElementById('hamburger');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        const header = document.getElementById('header');
+        const mainContent = document.getElementById('main-content');
+
+        hamburger.addEventListener('click', () => {
+            if (window.innerWidth <= 768) {
+                // Mobile: Toggle sidebar and overlay
+                sidebar.classList.toggle('open');
+                overlay.classList.toggle('show');
+                hamburger.classList.toggle('active');
+            } else {
+                // Desktop: Toggle sidebar collapse
+                sidebar.classList.toggle('closed');
+                header.classList.toggle('sidebar-closed');
+                mainContent.classList.toggle('sidebar-closed');
+                hamburger.classList.toggle('active');
+            }
+        });
+
+        overlay.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('show');
+            hamburger.classList.remove('active');
+        });
+
+        // Navigation
+        function showSection(section) {
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            const sections = {
+                reports: 'Raporlar & Analiz Sayfası',
+                employees: 'Çalışan Yönetimi Sayfası',
+                departments: 'Departman Yönetimi Sayfası',
+                'bulk-add': 'Toplu Çalışan Ekleme Sayfası',
+                assignments: 'Envanter Atama Sayfası',
+                assessments: 'Mevcut Envanter Sayfası',
+                results: 'Sonuçlar Sayfası',
+                'email-campaigns': 'E-posta Kampanyaları Sayfası',
+                templates: 'Mail Template Sayfası',
+                tracking: 'Link Takip Sayfası',
+                subscription: 'Abonelik Durumu Sayfası',
+                settings: 'Ayarlar Sayfası'
+            };
+
+            alert(`🚧 ${sections[section]} yakında hazır olacak!\n\n🎯 Bu sayfada:\n• Detaylı filtreleme\n• Excel export\n• Toplu işlemler\n• Gelişmiş raporlama`);
+
+            document.querySelector('.page-title').textContent = sections[section] || 'Dashboard';
+
+            if (window.innerWidth <= 768) {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('show');
+                hamburger.classList.remove('active');
+            }
+        }
+
+        // Main Functions
+        function sendEmailCampaign() {
+            document.getElementById('email-modal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('email-modal').classList.remove('show');
+        }
+
+        function confirmSendEmail() {
+            alert('📧 E-posta Kampanyası Başlatıldı!\n\n✅ 45 çalışana Liderlik Becerileri envanteri gönderildi\n🔗 Özel linkler oluşturuldu\n📊 Takip sistemi aktif\n\n📈 Sonuçları "E-posta Kampanyaları" bölümünden izleyebilirsiniz.');
+            closeModal();
+        }
+
+        function addEmployee() {
+            alert('👤 Yeni Çalışan Ekleme\n\n📝 Gerekli Bilgiler:\n• Ad Soyad\n• E-posta adresi\n• Departman\n• Pozisyon\n• Telefon (opsiyonel)\n\n💡 Toplu ekleme için Excel şablonunu kullanabilirsiniz.');
+        }
+
+        function importExcel() {
+            alert('📊 Excel Import Sistemi\n\n📋 Şablon Format:\n• Ad Soyad | E-posta | Departman | Pozisyon\n\n⚡ Özellikler:\n• Otomatik validasyon\n• Duplicate kontrol\n• Hata raporlama\n• Toplu işlem');
+        }
+
+        function downloadReport() {
+            alert('📈 Genel Rapor İndiriliyor\n\n📊 İçerik:\n• Departman bazlı istatistikler\n• E-posta performansı\n• Tamamlama oranları\n• Trend analizi\n\n💾 Format: Excel + PDF');
+        }
+
+        function sendReminder() {
+            alert('📮 Hatırlatma Gönderiliyor\n\n🎯 Hedef: Testini tamamlamayan çalışanlar\n📧 15 kişiye hatırlatma e-postası gönderildi\n⏰ Otomatik hatırlatma: 3 gün sonra');
+        }
+
+        function viewCompletedReports() {
+            alert('📊 Tamamlanan Raporlar\n\n✅ Bu ay tamamlanan: 66 rapor\n📈 Ortalama puan: 78.5\n🏆 En yüksek: 95 (Ahmet Yılmaz)\n📋 Departman lideri: İK (%88 tamamlama)');
+        }
+
+        function exportDepartmentData() {
+            alert('📂 Departman Raporu Hazırlanıyor\n\n📊 İçerik:\n• Departman bazlı detaylar\n• Bireysel sonuçlar\n• Karşılaştırmalı analiz\n• Gelişim önerileri');
+        }
+
+        function showUserMenu() {
+            alert('👤 Kullanıcı Menüsü\n\n⚙️ Seçenekler:\n• Profil Bilgileri\n• Şifre Değiştir\n• Bildirim Ayarları\n• Yardım & Destek\n• Çıkış Yap');
+        }
+
+        function logout() {
+            if(confirm('Çıkış yapmak istediğinizden emin misiniz?')) {
+                alert('👋 Güle güle Ayşe! Ana sayfaya yönlendiriliyorsunuz...');
+                window.location.href = 'index.html';
+            }
+        }
+
+        // Welcome message
+        setTimeout(() => {
+            alert('🎉 Hoşgeldin Ayşe!\n\n📊 Koç Holding Durumu:\n• Professional paket aktif\n• 147/250 çalışan\n• 234 rapor bu ay\n• %89 e-posta açılma oranı\n\n💡 Çalışanlara envanter göndermek için mavi butonu kullan!');
+        }, 1500);
+
+        // Responsive handling
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('show');
+                hamburger.classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>
